@@ -1,5 +1,5 @@
 module.exports = {
   port: 9000,
-  limit: 10,
-  timer: 60
+  limit: 1,
+  timer: 60000
 }

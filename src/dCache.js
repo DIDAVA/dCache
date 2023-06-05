@@ -8,10 +8,10 @@ class dCache extends EventEmitter {
     this.file = `${__dirname}/data.json`
     this.cache = new Map()
     this.nonce = 0
-    this.limit = config.limit ?? 10
-    this.epoch = Date.now()
+    this.limit = config.limit ?? 1
     if (fs.existsSync(this.file)) this.load()
     else this.save()
+    setInterval(() => this.save(), config.timer ?? 60000)
   }
 
   load(){
@@ -20,27 +20,33 @@ class dCache extends EventEmitter {
     this.emit('load')
   }
 
-  save(checkNonce = false){
-    const data = Array.from(this.cache.entries())
-    fs.writeFileSync(this.file, JSON.stringify(data))
-    this.emit('save')
+  save(force = false){
+    const now = Date.now()
+    if (force || this.nonce >= this.limit) {
+      const data = Array.from(this.cache.entries())
+      fs.writeFile(this.file, JSON.stringify(data))
+      this.nonce = 0
+      this.emit('save')
+    }
+    
   }
 
   set(key, value){
     this.cache.set(key, value)
     this.nonce++
     this.emit('set', key)
-    const now = Date.now()
-    const epoch = this.epoch + (this.timer * 1000)
-    if (this.nonce >= this.limit || now > epoch) {
-      this.save()
-      this.nonce = 0
-      this.epoch = now
-    }
+    this.save()
   }
 
   get(key){
     return this.cache.has(key) ? this.cache.get(key) : null
+  }
+
+  del(key){
+    this.cache.delete(key)
+    this.nonce++
+    this.emit('del', key)
+    this.save()
   }
 
 }
