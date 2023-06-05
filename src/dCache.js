@@ -5,12 +5,13 @@ class dCache extends EventEmitter {
 
   constructor(config = {}){
     super()
+    if (config.verbose) this.verbose()
     this.file = `${__dirname}/data.json`
     this.cache = new Map()
     this.nonce = 0
     this.limit = config.limit ?? 1
     if (fs.existsSync(this.file)) this.load()
-    else this.save()
+    else this.save(true)
     setInterval(() => this.save(), config.timer ?? 60000)
   }
 
@@ -24,7 +25,7 @@ class dCache extends EventEmitter {
     const now = Date.now()
     if (force || this.nonce >= this.limit) {
       const data = Array.from(this.cache.entries())
-      fs.writeFile(this.file, JSON.stringify(data))
+      fs.writeFileSync(this.file, JSON.stringify(data))
       this.nonce = 0
       this.emit('save')
     }
@@ -42,11 +43,20 @@ class dCache extends EventEmitter {
     return this.cache.has(key) ? this.cache.get(key) : null
   }
 
-  del(key){
-    this.cache.delete(key)
-    this.nonce++
-    this.emit('del', key)
-    this.save()
+  delete(key){
+    if (this.cache.has(key)) {
+      this.cache.delete(key)
+      this.nonce++
+      this.emit('delete', key)
+      this.save()
+    }
+  }
+
+  verbose(){
+    this.on('load', () => console.log('LOAD', 'Database loaded and initialized'))
+    this.on('save', () => console.log('SAVE', 'Database backup completed'))
+    this.on('set', key => console.log('SET ', key))
+    this.on('delete', key => console.log('DEL ', key))
   }
 
 }

@@ -26,6 +26,11 @@ api.post('/:key', (req, res) => {
   res.json(response.result('OK'))
 })
 
+api.delete('/:key', (req, res) => {
+  cache.delete(req.params.key)
+  res.json(response.result('OK'))
+})
+
 api.listen(config.port, () => {
   console.log('dCache Server is running at port', config.port)
 })
