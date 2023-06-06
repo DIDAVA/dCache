@@ -9,9 +9,11 @@ api.use(express.json())
 
 api.get('/', (req, res) => {
   res.json(response.result({
+    author: 'DIDAVA',
     service: 'dCache',
     version: '1.0.0',
-    description: 'In-memory database'
+    description: 'In-memory database',
+    records: cache.cache.size
   }))
 })
 
