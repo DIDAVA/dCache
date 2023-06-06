@@ -43,13 +43,13 @@ test('Import Valid Dump Data', async () => {
 
 test('Import Invalid Dump Data (Object)', async () => {
   const url = `${base}/import`
-  const response = await api.post(url, [{}])
+  const response = await api.post(url, {})
   expect(response.data.error).toStrictEqual({code: 400, message: 'bad request'})
 })
 
 test('Import Invalid Dump Data (Array)', async () => {
   const url = `${base}/import`
-  const response = await api.post(url, {})
+  const response = await api.post(url, [[[]]])
   expect(response.data.error).toStrictEqual({code: 400, message: 'bad request'})
 })
 
