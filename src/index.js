@@ -15,18 +15,40 @@ api.get('/', (req, res) => {
   }))
 })
 
-api.get('/:key', (req, res) => {
+api.post('/search', (req, res) => {
+  const result = cache.search(req.body)
+  console.log(result)
+  res.json(response.result(result))
+})
+
+api.post('/import', (req, res) => {
+  const success = cache.import(req.body)
+  if (success) res.json(response.result('OK'))
+  else res.json(response.error(400, 'bad request'))
+})
+
+api.get('/export', (req, res) => {
+  const data = cache.export()
+  res.json(response.result(data))
+})
+
+api.delete('/flush', (req, res) => {
+  cache.flush()
+  res.json(response.result('OK'))
+})
+
+api.get('/key/:key', (req, res) => {
   const data = cache.get(req.params.key)
   if (data) res.json(response.result(data))
   else res.json(response.error(404, 'not found'))
 })
 
-api.post('/:key', (req, res) => {
+api.post('/key/:key', (req, res) => {
   cache.set(req.params.key, req.body)
   res.json(response.result('OK'))
 })
 
-api.delete('/:key', (req, res) => {
+api.delete('/key/:key', (req, res) => {
   cache.delete(req.params.key)
   res.json(response.result('OK'))
 })

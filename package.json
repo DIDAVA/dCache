@@ -5,12 +5,15 @@
   "main": "src/index.js",
   "scripts": {
     "serve": "node src/index.js",
-    "test": "node src/test.js"
+    "test": "jest"
   },
   "author": "DIDAVA",
   "license": "MIT",
   "dependencies": {
     "axios": "^1.4.0",
     "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0"
   }
 }

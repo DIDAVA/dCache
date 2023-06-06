@@ -12,12 +12,12 @@ class dCache extends EventEmitter {
     this.limit = config.limit ?? 1
     if (fs.existsSync(this.file)) this.load()
     else this.save(true)
-    setInterval(() => this.save(), config.timer ?? 60000)
+    setInterval(() => this.save(), config.timer ?? 30000)
   }
 
   load(){
     const data = JSON.parse(fs.readFileSync(this.file))
-    data.forEach(i => this.cache.set(i[0], i[1]))
+    this.cache = new Map(data)
     this.emit('load')
   }
 
@@ -36,7 +36,6 @@ class dCache extends EventEmitter {
     this.cache.set(key, value)
     this.nonce++
     this.emit('set', key)
-    this.save()
   }
 
   get(key){
@@ -48,15 +47,62 @@ class dCache extends EventEmitter {
       this.cache.delete(key)
       this.nonce++
       this.emit('delete', key)
-      this.save()
     }
   }
 
+  search(input){
+    const query = {}
+    for (let k in input) query[k] = new RegExp(input[k], 'g')
+    console.log(query)
+    const result = []
+    this.cache.forEach((value, key) => {
+      for (let qk in query) {
+        if (qk in value) {
+          if (value[qk] instanceof Array) {
+            const map = value[qk].map(i => query[qk].test(i))
+            if (map.includes(true)) result.push([key, value])
+          }
+          else if (query[qk].test(value[qk])) result.push([key, value])
+        }
+      }
+    })
+    return result
+  }
+
+  import(data){
+    if (!(data instanceof Array)) return false
+    else {
+      for (let i = 0; i < data.length; i++) {
+        if (data[i].length != 2) {
+          this.emit('import', false)
+          return false
+        }
+      }
+      this.cache = new Map(data)
+      this.emit('import', true)
+      return true
+    }
+  }
+
+  export(){
+    this.emit('export')
+    return Array.from(this.cache.entries())
+  }
+
+  flush(){
+    this.cache.clear()
+    this.nonce++
+    this.emit('flush')
+  }
+
   verbose(){
-    this.on('load', () => console.log('LOAD', 'Database loaded and initialized'))
-    this.on('save', () => console.log('SAVE', 'Database backup completed'))
+    this.on('load', () => console.log('LOD', 'Database loaded and initialized'))
+    this.on('save', () => console.log('SAV', 'Database backup completed'))
     this.on('set', key => console.log('SET ', key))
     this.on('delete', key => console.log('DEL ', key))
+    this.on('import', success => console.log('IMP', success ? 'Success' : 'Failed'))
+    this.on('export', () => console.log('EXP', 'Success'))
+    this.on('flush', () => console.log('FLS', 'Success'))
   }
 
 }
